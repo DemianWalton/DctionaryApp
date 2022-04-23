@@ -1,1 +1,1 @@
-# ChatApp
+# Dictionary App
