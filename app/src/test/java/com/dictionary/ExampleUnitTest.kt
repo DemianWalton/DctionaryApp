@@ -1,4 +1,4 @@
-package com.chatapp
+package com.dictionary
 
 import org.junit.Test
 
