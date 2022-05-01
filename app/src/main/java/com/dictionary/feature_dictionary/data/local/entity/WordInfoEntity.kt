@@ -7,7 +7,7 @@ import com.dictionary.feature_dictionary.domain.model.WordInfo
 
 @Entity
 data class WordInfoEntity(
-    @PrimaryKey val id: Int,
+    @PrimaryKey val id: Int? = null,
     val word: String,
     val phonetic: String,
     val meanings: List<Meaning>

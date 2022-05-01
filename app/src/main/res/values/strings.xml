@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DictionaryApp</string>
+    <string name="main_activity_enter_your_search_hint">Enter your search</string>
 </resources>
