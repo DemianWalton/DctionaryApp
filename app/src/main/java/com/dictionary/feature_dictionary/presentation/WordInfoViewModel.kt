@@ -1,17 +1,16 @@
 package com.dictionary.feature_dictionary.presentation
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dictionary.core.util.DataEvent
-import com.dictionary.feature_dictionary.domain.model.WordInfoState
-import com.dictionary.feature_dictionary.domain.use_case.GetWordInfo
+import com.dictionary.core.util.DataState
+import com.dictionary.feature_dictionary.domain.repository.WordInfoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -21,60 +20,37 @@ private const val DELAY_TIME = 500L
 
 @HiltViewModel
 class WordInfoViewModel @Inject constructor(
-    private val getWordInfo: GetWordInfo
+    private val repository: WordInfoRepository
 ) : ViewModel() {
 
-
-    private val _searchQuery = mutableStateOf("")
-    val searchQuery: State<String> = _searchQuery
-
-    private val _state = mutableStateOf(WordInfoState())
-    val state: State<WordInfoState> = _state
-
-    private val _eventFlow = MutableSharedFlow<UIEvent>()
-    val eventFlow = _eventFlow.asSharedFlow()
+    private val _searchQuery = MutableStateFlow<DataState>(DataState.Empty)
+    val searchQuery: StateFlow<DataState> = _searchQuery
 
     private var searchJob: Job? = null
 
     fun onSearch(query: String) {
-        _searchQuery.value = query
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             delay(DELAY_TIME)
-            getWordInfo(query)
+            repository.getWord(query)
                 .onEach { result ->
                     when (result) {
                         is DataEvent.Success -> {
-                            _state.value = state.value.copy(
-                                wordInfoItems = result.data ?: emptyList(),
-                                isLoading = false
-                            )
+                            Log.i("TAG", "ViewModel: Success ${result.data} ${result.message}")
+                            _searchQuery.value = DataState.Success(result.data ?: emptyList())
                         }
                         is DataEvent.Failure -> {
-                            _state.value = state.value.copy(
-                                wordInfoItems = result.data ?: emptyList(),
-                                isLoading = false
-                            )
-                            _eventFlow.emit(
-                                UIEvent.ShowSnackbar(
-                                    result.message ?: "Unknown error"
-                                )
-                            )
+                            Log.i("TAG", "ViewModel: Failure ${result.data} ${result.message}")
+                            _searchQuery.value = DataState.Failure(result.data ?: emptyList())
                         }
                         is DataEvent.Loading -> {
-                            _state.value = state.value.copy(
-                                wordInfoItems = result.data ?: emptyList(),
-                                isLoading = true
-                            )
+                            Log.i("TAG", "ViewModel: Loading ${result.data} ${result.message}")
+                            _searchQuery.value = DataState.Loading(result.data ?: emptyList())
                         }
                     }
                 }.launchIn(this)
         }
-
     }
 
-    sealed class UIEvent {
-        data class ShowSnackbar(val message: String) : UIEvent()
-    }
 
 }

@@ -6,7 +6,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface WordInfoRepository {
 
-    /**Flow to emit the different status, loading, success..*/
-
     fun getWord(word: String): Flow<DataEvent<List<WordInfo>>>
 }

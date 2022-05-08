@@ -8,7 +8,6 @@ import com.dictionary.feature_dictionary.data.remote.DictionaryApi
 import com.dictionary.feature_dictionary.data.repository.WordInfoRepositoryImp
 import com.dictionary.feature_dictionary.data.util.GsonParser
 import com.dictionary.feature_dictionary.domain.repository.WordInfoRepository
-import com.dictionary.feature_dictionary.domain.use_case.GetWordInfo
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -21,12 +20,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object WordInfoModule {
-
-    @Provides
-    @Singleton
-    fun provideGetWordInfoUseCase(repository: WordInfoRepository): GetWordInfo {
-        return GetWordInfo(repository)
-    }
 
     @Provides
     @Singleton
@@ -54,6 +47,4 @@ object WordInfoModule {
             .build()
             .create(DictionaryApi::class.java)
     }
-
-
 }
