@@ -2,10 +2,10 @@ package com.dictionary.feature_dictionary.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dictionary.core.util.CarState
 import com.dictionary.core.util.DataEvent
-import com.dictionary.core.util.DataState
 import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
-import com.dictionary.feature_dictionary.domain.repository.WordInfoRepository
+import com.dictionary.feature_dictionary.domain.repository.CarsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,36 +15,38 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-private const val DELAY_TIME = 900L
-
 @HiltViewModel
-class WordInfoViewModel @Inject constructor(
-    private val repository: WordInfoRepository
+class CarInfoViewModel @Inject constructor(
+    private val repository: CarsRepository
 ) : ViewModel() {
 
-    private val _searchQuery = MutableStateFlow<DataState>(DataState.Empty)
-    val searchQuery: StateFlow<DataState> = _searchQuery
+    private val _searchQuery = MutableStateFlow<CarState>(CarState.Empty)
+    val searchCar: StateFlow<CarState> = _searchQuery
 
     private var searchJob: Job? = null
 
-    fun onSearch(query: String, car: CarMetadata) {
+    fun onInsertCar(query: CarMetadata) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            //delay(DELAY_TIME)
-            repository.getWord(query, car)
+            repository.insertCars(query)
                 .onEach { result ->
                     when (result) {
                         is DataEvent.Success -> {
-                            _searchQuery.value = DataState.Success(result.data ?: emptyList())
+                            _searchQuery.value = CarState.Success(result.data)
                         }
                         is DataEvent.Failure -> {
-                            _searchQuery.value = DataState.Failure(result.data ?: emptyList())
+                            _searchQuery.value = CarState.Failure(result.data)
                         }
                         is DataEvent.Loading -> {
-                            _searchQuery.value = DataState.Loading(result.data ?: emptyList())
+                            _searchQuery.value = CarState.Loading(result.data)
                         }
                     }
                 }.launchIn(this)
         }
     }
+
+
+    /*fun insertCar(car: Car) {
+            repository.insertCars(car)
+    }*/
 }

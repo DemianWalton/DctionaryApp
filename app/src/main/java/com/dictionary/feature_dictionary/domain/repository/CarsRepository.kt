@@ -2,10 +2,15 @@ package com.dictionary.feature_dictionary.domain.repository
 
 import com.dictionary.core.util.DataEvent
 import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
-import com.dictionary.feature_dictionary.domain.model.WordInfo
 import kotlinx.coroutines.flow.Flow
 
-interface WordInfoRepository {
+interface CarsRepository {
 
-    fun getWord(word: String, car: CarMetadata): Flow<DataEvent<List<WordInfo>>>
+    //fun insertCars(cars: Car)
+
+    fun insertCars(cars: CarMetadata): Flow<DataEvent<CarMetadata>>
+
+    //suspend fun getCars(word: String): Flow<DataEvent<List<Car>>>
+
+
 }

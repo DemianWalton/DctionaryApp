@@ -2,7 +2,8 @@ package com.dictionary.feature_dictionary.di
 
 import android.app.Application
 import androidx.room.Room
-import com.dictionary.feature_dictionary.data.local.Database
+import com.dictionary.feature_dictionary.data.local.ComponentConverter
+import com.dictionary.feature_dictionary.data.local.WordsDatabase
 import com.dictionary.feature_dictionary.data.local.MeaningConverter
 import com.dictionary.feature_dictionary.data.remote.DictionaryApi
 import com.dictionary.feature_dictionary.data.repository.WordInfoRepositoryImp
@@ -23,18 +24,20 @@ object WordInfoModule {
 
     @Provides
     @Singleton
-    fun provideWordInfoRepository(api: DictionaryApi, db: Database): WordInfoRepository {
-        return WordInfoRepositoryImp(api, db.dao)
+    fun provideWordInfoRepository(api: DictionaryApi, db: WordsDatabase): WordInfoRepository {
+        return WordInfoRepositoryImp(api, db.dao,db.daoCars)
     }
 
     @Provides
     @Singleton
-    fun provideWordInfoDatabase(app: Application): Database {
+    fun provideWordInfoDatabase(app: Application): WordsDatabase {
         return Room.databaseBuilder(
             app,
-            Database::class.java,
+            WordsDatabase::class.java,
             "word_db"
-        ).addTypeConverter(MeaningConverter(GsonParser(Gson())))
+        )
+            .addTypeConverter(MeaningConverter(GsonParser(Gson())))
+            .addTypeConverter(ComponentConverter(GsonParser(Gson())))
             .build()
     }
 

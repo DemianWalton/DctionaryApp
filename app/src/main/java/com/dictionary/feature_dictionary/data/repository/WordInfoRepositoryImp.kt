@@ -1,7 +1,9 @@
 package com.dictionary.feature_dictionary.data.repository
 
 import com.dictionary.core.util.DataEvent
+import com.dictionary.feature_dictionary.data.local.CarDao
 import com.dictionary.feature_dictionary.data.local.WordInfoDao
+import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
 import com.dictionary.feature_dictionary.data.remote.DictionaryApi
 import com.dictionary.feature_dictionary.domain.model.WordInfo
 import com.dictionary.feature_dictionary.domain.repository.WordInfoRepository
@@ -12,20 +14,22 @@ import java.io.IOException
 
 class WordInfoRepositoryImp(
     private val api: DictionaryApi,
-    private val dao: WordInfoDao
+    private val dao: WordInfoDao,
+    private val carDao: CarDao
 ) : WordInfoRepository {
 
-    override fun getWord(word: String): Flow<DataEvent<List<WordInfo>>> = flow {
+    override fun getWord(word: String, car: CarMetadata): Flow<DataEvent<List<WordInfo>>> = flow {
         emit(DataEvent.Loading())
 
         val wordsInfo = dao.getWord(word).map { it.toWordInfoClass() }
         emit(DataEvent.Loading(wordsInfo))
 
         try {
-            val remoteWordInfo = api.getDefinition(word)
-            dao.insertWordOnSuccessApiResponse(
+            //val remoteWordInfo = api.getDefinition(word)
+            carDao.insertCar(car)
+            /*dao.insertWordOnSuccessApiResponse(
                 remoteWordInfo.map { it.word },
-                remoteWordInfo.map { it.toWordInfoEntity() })
+                remoteWordInfo.map { it.toWordInfoEntity() })*/
         } catch (e: HttpException) {
             emit(
                 DataEvent.Failure(
@@ -45,4 +49,5 @@ class WordInfoRepositoryImp(
         val newWordsInfo = dao.getWord(word).map { it.toWordInfoClass() }
         emit(DataEvent.Success(newWordsInfo))
     }
+
 }

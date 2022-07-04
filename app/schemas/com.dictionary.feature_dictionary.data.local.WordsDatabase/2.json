@@ -1,0 +1,144 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "73dde8d6affb48dd254b2e9df95b65c0",
+    "entities": [
+      {
+        "tableName": "WordInfoEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER, `word` TEXT NOT NULL, `phonetic` TEXT NOT NULL, `meanings` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "word",
+            "columnName": "word",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phonetic",
+            "columnName": "phonetic",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "meanings",
+            "columnName": "meanings",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "Cars",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `colour` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colour",
+            "columnName": "colour",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "Component",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`carId` INTEGER NOT NULL, `componentId` INTEGER NOT NULL, `type` TEXT NOT NULL, `description` TEXT NOT NULL, `created` TEXT NOT NULL, PRIMARY KEY(`componentId`), FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "carId",
+            "columnName": "carId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "componentId",
+            "columnName": "componentId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "created",
+            "columnName": "created",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "componentId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "index_Component_carId",
+            "unique": false,
+            "columnNames": [
+              "carId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Component_carId` ON `${TABLE_NAME}` (`carId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Cars",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "carId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '73dde8d6affb48dd254b2e9df95b65c0')"
+    ]
+  }
+}

@@ -1,10 +1,7 @@
 package com.dictionary.feature_dictionary.data.local
 
-import androidx.room.Dao
-import androidx.room.Insert
+import androidx.room.*
 import androidx.room.OnConflictStrategy.REPLACE
-import androidx.room.Query
-import androidx.room.Transaction
 import com.dictionary.feature_dictionary.data.local.entity.WordInfoEntity
 
 @Dao

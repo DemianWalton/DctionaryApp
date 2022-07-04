@@ -1,5 +1,6 @@
 package com.dictionary.core.util
 
+import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
 import com.dictionary.feature_dictionary.domain.model.WordInfo
 
 sealed class DataEvent<T>(val data: T? = null, val message: String? = null) {
@@ -14,4 +15,11 @@ sealed class DataState {
     class Failure(val result: List<WordInfo>) : DataState()
     class Loading(val result: List<WordInfo>) : DataState()
     object Empty : DataState()
+}
+
+sealed class CarState {
+    class Success(val result: CarMetadata?) : CarState()
+    class Failure(val result: CarMetadata?) : CarState()
+    class Loading(val result: CarMetadata?) : CarState()
+    object Empty : CarState()
 }
