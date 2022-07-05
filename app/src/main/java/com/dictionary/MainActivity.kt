@@ -8,7 +8,9 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.dictionary.core.util.DataState
 import com.dictionary.databinding.ActivityMainBinding
-import com.dictionary.feature_dictionary.data.local.WordsDatabase
+import com.dictionary.feature_dictionary.data.local.entity.Car
+import com.dictionary.feature_dictionary.data.local.entity.Component
+import com.dictionary.feature_dictionary.presentation.CarInfoViewModel
 import com.dictionary.feature_dictionary.presentation.WordInfoViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
@@ -20,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: WordInfoViewModel by viewModels()
-    //private val viewModelCars: CarInfoViewModel by viewModels()
+    private val viewModelCars: CarInfoViewModel by viewModels()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.etSearch.doAfterTextChanged { e ->
             e?.let {
-                viewModel.onSearch(e.toString()/*, getCar()*/)
+                viewModel.onSearch(e.toString(), getCar())
             }
         }
 
@@ -78,28 +80,27 @@ class MainActivity : AppCompatActivity() {
 
 
         binding.carBtn.setOnClickListener {
-            WordsDatabase.getDatabase(this)
-
-            /* var componentList = mutableListOf<Component>()
-             val componen1 = Component(0, getRandomString(5), getRandomString(6), Date().toString())
-             val componen2 = Component(0, getRandomString(7), getRandomString(8), Date().toString())
-             componentList.add(componen1)
-             componentList.add(componen2)
-             val Car = CarMetadata(0,getRandomString(4), componentList)
-
-             viewModelCars.onInsertCar(Car)*/
-
+            //WordsDatabase.getDatabase(this)
+            val text = getRandomString(5)
+            var componentList = mutableListOf<Component>()
+            val componen1 = Component(1, text, text, Date().toString())
+            val componen2 = Component(2, text, text, Date().toString())
+            componentList.add(componen1)
+            componentList.add(componen2)
+            val Car = Car(0, text, componentList)
+            viewModelCars.onInsertCar(Car)
         }
     }
 
-    /*fun getCar(): CarMetadata {
+    fun getCar(): Car {
+        val text = getRandomString(5)
         var componentList = mutableListOf<Component>()
-        val componen1 = Component(0, getRandomString(5), getRandomString(6), Date().toString())
-        val componen2 = Component(0, getRandomString(7), getRandomString(8), Date().toString())
+        val componen1 = Component(0, text, text, Date().toString())
+        val componen2 = Component(0, text, text, Date().toString())
         componentList.add(componen1)
         componentList.add(componen2)
-        return CarMetadata(0,getRandomString(4), componentList)
-    }*/
+        return Car(0, text, componentList)
+    }
 
     companion object {
         private val ALLOWED_CHARACTERS = "0123456789qwertyuiopasdfghjklzxcvbnm"

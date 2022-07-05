@@ -2,7 +2,7 @@ package com.dictionary.feature_dictionary.data.repository
 
 import com.dictionary.core.util.DataEvent
 import com.dictionary.feature_dictionary.data.local.CarDao
-import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
+import com.dictionary.feature_dictionary.data.local.entity.Car
 import com.dictionary.feature_dictionary.domain.repository.CarsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -11,8 +11,8 @@ class CarInfoRepositoryImp(
     private val dao: CarDao
 ) : CarsRepository {
 
-    override fun insertCars(cars: CarMetadata): Flow<DataEvent<CarMetadata>> = flow {
-            emit(DataEvent.Loading())
+    override fun insertCars(cars: Car): Flow<DataEvent<Car>> = flow {
+
             val insertCar = dao.insertCar(cars)
 
             val car = dao.getCar(insertCar.toInt())

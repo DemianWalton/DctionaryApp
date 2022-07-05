@@ -1,6 +1,6 @@
 package com.dictionary.core.util
 
-import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
+import com.dictionary.feature_dictionary.data.local.entity.Car
 import com.dictionary.feature_dictionary.domain.model.WordInfo
 
 sealed class DataEvent<T>(val data: T? = null, val message: String? = null) {
@@ -18,8 +18,8 @@ sealed class DataState {
 }
 
 sealed class CarState {
-    class Success(val result: CarMetadata?) : CarState()
-    class Failure(val result: CarMetadata?) : CarState()
-    class Loading(val result: CarMetadata?) : CarState()
+    class Success(val result: Car?) : CarState()
+    class Failure(val result: Car?) : CarState()
+    class Loading(val result: Car?) : CarState()
     object Empty : CarState()
 }

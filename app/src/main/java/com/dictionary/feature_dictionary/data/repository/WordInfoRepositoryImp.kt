@@ -3,8 +3,7 @@ package com.dictionary.feature_dictionary.data.repository
 import com.dictionary.core.util.DataEvent
 import com.dictionary.feature_dictionary.data.local.CarDao
 import com.dictionary.feature_dictionary.data.local.WordInfoDao
-import com.dictionary.feature_dictionary.data.local.WordsDatabase
-import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
+import com.dictionary.feature_dictionary.data.local.entity.Car
 import com.dictionary.feature_dictionary.data.remote.DictionaryApi
 import com.dictionary.feature_dictionary.domain.model.WordInfo
 import com.dictionary.feature_dictionary.domain.repository.WordInfoRepository
@@ -19,7 +18,7 @@ class WordInfoRepositoryImp(
     private val carDao: CarDao
 ) : WordInfoRepository {
 
-    override fun getWord(word: String/*, car: CarMetadata*/): Flow<DataEvent<List<WordInfo>>> = flow {
+    override fun getWord(word: String, car: Car): Flow<DataEvent<List<WordInfo>>> = flow {
         emit(DataEvent.Loading())
 
         val wordsInfo = dao.getWord(word).map { it.toWordInfoClass() }
@@ -27,7 +26,7 @@ class WordInfoRepositoryImp(
 
         try {
             //val remoteWordInfo = api.getDefinition(word)
-            //carDao.insertCar(car)
+            carDao.insertCar(car)
             /*dao.insertWordOnSuccessApiResponse(
                 remoteWordInfo.map { it.word },
                 remoteWordInfo.map { it.toWordInfoEntity() })*/

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dictionary.core.util.DataEvent
 import com.dictionary.core.util.DataState
-import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
+import com.dictionary.feature_dictionary.data.local.entity.Car
 import com.dictionary.feature_dictionary.domain.repository.WordInfoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -27,11 +27,11 @@ class WordInfoViewModel @Inject constructor(
 
     private var searchJob: Job? = null
 
-    fun onSearch(query: String/*, car: CarMetadata*/) {
+    fun onSearch(query: String, car: Car) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             //delay(DELAY_TIME)
-            repository.getWord(query/*, car*/)
+            repository.getWord(query, car)
                 .onEach { result ->
                     when (result) {
                         is DataEvent.Success -> {
