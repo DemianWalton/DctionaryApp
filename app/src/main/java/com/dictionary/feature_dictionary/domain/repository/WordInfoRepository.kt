@@ -7,5 +7,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface WordInfoRepository {
 
-    fun getWord(word: String, car: CarMetadata): Flow<DataEvent<List<WordInfo>>>
+    fun getWord(word: String/*, car: CarMetadata*/): Flow<DataEvent<List<WordInfo>>>
 }

@@ -2,25 +2,32 @@ package com.dictionary.feature_dictionary.data.local
 
 import android.content.Context
 import android.database.Cursor
-import androidx.room.*
+import android.util.Log
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.dictionary.feature_dictionary.data.local.entity.CarMetadata
 import com.dictionary.feature_dictionary.data.local.entity.ComponentEntity
 import com.dictionary.feature_dictionary.data.local.entity.WordInfoEntity
+import com.dictionary.feature_dictionary.data.util.GsonParser
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 @Database(
-    version = 4,
+    version = 6,
     entities = [WordInfoEntity::class, CarMetadata::class, ComponentEntity::class]
     //, autoMigrations = [AutoMigration(from = 3, to = 4)], exportSchema = true
 )
 
 @TypeConverters(MeaningConverter::class, ComponentConverter::class)
 abstract class WordsDatabase : RoomDatabase() {
+    val DATABASE_NAME = "word_db"
+
     abstract val dao: WordInfoDao
     abstract val daoCars: CarDao
-
-
 
     companion object {
         @Volatile
@@ -38,10 +45,60 @@ abstract class WordsDatabase : RoomDatabase() {
                         WordsDatabase::class.java,
                         "word_db"
                     )
+                    .addMigrations(MIGRATION_2_3)
                     .addMigrations(MIGRATION_3_4)
+                    .addMigrations(MIGRATION_4_5)
+                    .addMigrations(MIGRATION_5_6)
+                    .addTypeConverter(MeaningConverter(GsonParser(Gson())))
+                    .addTypeConverter(ComponentConverter())
                     .build()
                 INSTANCE = instance
+                instance.openHelper.writableDatabase.version
                 return instance
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                try {
+                    // Extract existing components
+                    val cursor = database.query("SELECT `id`, `components` FROM `Cars`")
+                    val components = cursorToComponents(cursor)
+
+                    // Make new table without components column, SQLite cannot delete columns
+                    database.execSQL("CREATE TABLE IF NOT EXISTS `_new_Cars` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `colour` TEXT NOT NULL)")
+
+
+                    database.execSQL(
+                        "INSERT INTO _new_Cars" +
+                                "(id, colour) " +
+                                "SELECT " +
+                                "id, colour" +
+                                " FROM Cars"
+                    )
+
+                    database.execSQL("DROP TABLE `Cars`")
+
+                    database.execSQL("ALTER TABLE `_new_Cars` RENAME TO `Cars`")
+
+                    // Add new table & index
+                    database.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `Component` (`carId` INTEGER NOT NULL," +
+                                " `componentId` INTEGER NOT NULL," +
+                                " `type` TEXT NOT NULL," +
+                                " `description` TEXT NOT NULL," +
+                                " `created` TEXT NOT NULL, PRIMARY KEY(`componentId`)," +
+                                " FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
+                    )
+
+
+                    database.execSQL("CREATE INDEX IF NOT EXISTS `index_component_carId` ON `Component` (`carId`)")
+
+                    // Insert new components
+                    insertComponents(database, components)
+                } catch (e: Exception) {
+                    Log.i("TAG", "migrate: {$e}")
+                }
             }
         }
 
@@ -69,12 +126,14 @@ abstract class WordsDatabase : RoomDatabase() {
                     database.execSQL("ALTER TABLE `_new_Cars` RENAME TO `Cars`")
 
                     // Add new table & index
-                    database.execSQL("CREATE TABLE IF NOT EXISTS `Component` (`carId` INTEGER NOT NULL," +
-                            " `componentId` INTEGER NOT NULL," +
-                            " `type` TEXT NOT NULL," +
-                            " `description` TEXT NOT NULL," +
-                            " `created` TEXT NOT NULL, PRIMARY KEY(`componentId`)," +
-                            " FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)")
+                    database.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `Component` (`carId` INTEGER NOT NULL," +
+                                " `componentId` INTEGER NOT NULL," +
+                                " `type` TEXT NOT NULL," +
+                                " `description` TEXT NOT NULL," +
+                                " `created` TEXT NOT NULL, PRIMARY KEY(`componentId`)," +
+                                " FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
+                    )
 
 
                     database.execSQL("CREATE INDEX IF NOT EXISTS `index_component_carId` ON `Component` (`carId`)")
@@ -82,8 +141,95 @@ abstract class WordsDatabase : RoomDatabase() {
                     // Insert new components
                     insertComponents(database, components)
                 } catch (e: Exception) {
+                    Log.i("TAG", "migrate: {$e}")
+                }
+            }
+        }
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                try {
+                    // Extract existing components
+                    val cursor = database.query("SELECT `id`, `components` FROM `Cars`")
+                    val components = cursorToComponents(cursor)
+
+                    // Make new table without components column, SQLite cannot delete columns
+                    database.execSQL("CREATE TABLE IF NOT EXISTS `_new_Cars` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `colour` TEXT NOT NULL)")
+
+
+                    database.execSQL(
+                        "INSERT INTO _new_Cars" +
+                                "(id, colour) " +
+                                "SELECT " +
+                                "id, colour" +
+                                " FROM Cars"
+                    )
+
+                    database.execSQL("DROP TABLE `Cars`")
+
+                    database.execSQL("ALTER TABLE `_new_Cars` RENAME TO `Cars`")
+
+                    // Add new table & index
+                    database.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `Component` (`carId` INTEGER NOT NULL," +
+                                " `componentId` INTEGER NOT NULL," +
+                                " `type` TEXT NOT NULL," +
+                                " `description` TEXT NOT NULL," +
+                                " `created` TEXT NOT NULL, PRIMARY KEY(`componentId`)," +
+                                " FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
+                    )
+
+
+                    database.execSQL("CREATE INDEX IF NOT EXISTS `index_component_carId` ON `Component` (`carId`)")
+
+                    // Insert new components
+                    insertComponents(database, components)
+                } catch (e: Exception) {
+                    Log.i("TAG", "migrate: {$e}")
                     // Migration failed, Room will automatically roll back the transaction and retry when DB accessed
                 }
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                Log.i("TAG", "migrate: ENTRO EN EL METODO")
+                    // Extract existing components
+                    val cursor = database.query("SELECT `id`, `components` FROM `Cars`")
+                    val components = cursorToComponents(cursor)
+
+                    // Make new table without components column, SQLite cannot delete columns
+                    database.execSQL("CREATE TABLE IF NOT EXISTS `_new_Cars` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `colour` TEXT NOT NULL)")
+
+
+                    database.execSQL(
+                        "INSERT INTO _new_Cars" +
+                                "(id, colour) " +
+                                "SELECT " +
+                                "id, colour" +
+                                " FROM Cars"
+                    )
+
+                    database.execSQL("DROP TABLE `Cars`")
+
+                    database.execSQL("ALTER TABLE `_new_Cars` RENAME TO `Cars`")
+
+                    // Add new table & index
+                    database.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `Component` (`carId` INTEGER NOT NULL," +
+                                " `componentId` INTEGER NOT NULL," +
+                                " `type` TEXT NOT NULL," +
+                                " `description` TEXT NOT NULL," +
+                                " `created` TEXT NOT NULL, PRIMARY KEY(`componentId`)," +
+                                " FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
+                    )
+
+
+                    database.execSQL("CREATE INDEX IF NOT EXISTS `index_component_carId` ON `Component` (`carId`)")
+
+                    // Insert new components
+                    insertComponents(database, components)
+
             }
         }
 
@@ -105,7 +251,8 @@ abstract class WordsDatabase : RoomDatabase() {
 
             // 2: Parse each serialised list of components into objects, and update their carId
             val componentsList = carData.flatMap { carIdAndComponents ->
-                ComponentTypeConverter.toComponents(carIdAndComponents.second).onEach {
+                //ComponentTypeConverter.toComponents(carIdAndComponents.second).onEach {
+                toComponents(carIdAndComponents.second).onEach {
                     // 3: Update all carIds
                     it.carId = carIdAndComponents.first
                 }
@@ -114,6 +261,12 @@ abstract class WordsDatabase : RoomDatabase() {
             // 4: Return the list of components
             return componentsList
         }
+
+        fun toComponents(jsonComponents: String): List<ComponentEntity> {
+            val componentsType = object : TypeToken<List<ComponentEntity>>() {}.type
+            return Gson().fromJson<List<ComponentEntity>>(jsonComponents, componentsType)
+        }
+
 
         private fun insertComponents(
             database: SupportSQLiteDatabase,

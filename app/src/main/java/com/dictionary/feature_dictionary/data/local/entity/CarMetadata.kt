@@ -6,8 +6,8 @@ import androidx.room.*
 data class CarMetadata(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
-    var colour: String//,
-    //val components: List<Component>
+    var colour: String,
+    val components: List<Component>
 ) {}
 
 class Car(

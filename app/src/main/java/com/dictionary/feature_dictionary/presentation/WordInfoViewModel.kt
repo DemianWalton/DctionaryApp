@@ -27,11 +27,11 @@ class WordInfoViewModel @Inject constructor(
 
     private var searchJob: Job? = null
 
-    fun onSearch(query: String, car: CarMetadata) {
+    fun onSearch(query: String/*, car: CarMetadata*/) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             //delay(DELAY_TIME)
-            repository.getWord(query, car)
+            repository.getWord(query/*, car*/)
                 .onEach { result ->
                     when (result) {
                         is DataEvent.Success -> {

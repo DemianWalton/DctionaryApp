@@ -3,8 +3,8 @@ package com.dictionary.feature_dictionary.di
 import android.app.Application
 import androidx.room.Room
 import com.dictionary.feature_dictionary.data.local.ComponentConverter
-import com.dictionary.feature_dictionary.data.local.WordsDatabase
 import com.dictionary.feature_dictionary.data.local.MeaningConverter
+import com.dictionary.feature_dictionary.data.local.WordsDatabase
 import com.dictionary.feature_dictionary.data.remote.DictionaryApi
 import com.dictionary.feature_dictionary.data.repository.WordInfoRepositoryImp
 import com.dictionary.feature_dictionary.data.util.GsonParser
@@ -25,7 +25,7 @@ object WordInfoModule {
     @Provides
     @Singleton
     fun provideWordInfoRepository(api: DictionaryApi, db: WordsDatabase): WordInfoRepository {
-        return WordInfoRepositoryImp(api, db.dao,db.daoCars)
+        return WordInfoRepositoryImp(api, db.dao, db.daoCars)
     }
 
     @Provides
@@ -36,8 +36,8 @@ object WordInfoModule {
             WordsDatabase::class.java,
             "word_db"
         )
+            .addTypeConverter(ComponentConverter())
             .addTypeConverter(MeaningConverter(GsonParser(Gson())))
-            .addTypeConverter(ComponentConverter(GsonParser(Gson())))
             .build()
     }
 
