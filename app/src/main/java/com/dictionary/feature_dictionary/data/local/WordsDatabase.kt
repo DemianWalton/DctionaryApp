@@ -17,7 +17,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 @Database(
-    version = 6,
+    version = 2,
     entities = [WordInfoEntity::class, CarMetadata::class, ComponentEntity::class]
     //, autoMigrations = [AutoMigration(from = 3, to = 4)], exportSchema = true
 )
@@ -45,10 +45,7 @@ abstract class WordsDatabase : RoomDatabase() {
                         WordsDatabase::class.java,
                         "word_db"
                     )
-                    .addMigrations(MIGRATION_2_3)
-                    .addMigrations(MIGRATION_3_4)
-                    .addMigrations(MIGRATION_4_5)
-                    .addMigrations(MIGRATION_5_6)
+                    .addMigrations(MIGRATION_1_2)
                     .addTypeConverter(MeaningConverter(GsonParser(Gson())))
                     .addTypeConverter(ComponentConverter())
                     .build()
@@ -58,7 +55,7 @@ abstract class WordsDatabase : RoomDatabase() {
             }
         }
 
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 try {
                     // Extract existing components
@@ -99,137 +96,6 @@ abstract class WordsDatabase : RoomDatabase() {
                 } catch (e: Exception) {
                     Log.i("TAG", "migrate: {$e}")
                 }
-            }
-        }
-
-        private val MIGRATION_3_4 = object : Migration(3, 4) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                try {
-                    // Extract existing components
-                    val cursor = database.query("SELECT `id`, `components` FROM `Cars`")
-                    val components = cursorToComponents(cursor)
-
-                    // Make new table without components column, SQLite cannot delete columns
-                    database.execSQL("CREATE TABLE IF NOT EXISTS `_new_Cars` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `colour` TEXT NOT NULL)")
-
-
-                    database.execSQL(
-                        "INSERT INTO _new_Cars" +
-                                "(id, colour) " +
-                                "SELECT " +
-                                "id, colour" +
-                                " FROM Cars"
-                    )
-
-                    database.execSQL("DROP TABLE `Cars`")
-
-                    database.execSQL("ALTER TABLE `_new_Cars` RENAME TO `Cars`")
-
-                    // Add new table & index
-                    database.execSQL(
-                        "CREATE TABLE IF NOT EXISTS `Component` (`carId` INTEGER NOT NULL," +
-                                " `componentId` INTEGER NOT NULL," +
-                                " `type` TEXT NOT NULL," +
-                                " `description` TEXT NOT NULL," +
-                                " `created` TEXT NOT NULL, PRIMARY KEY(`componentId`)," +
-                                " FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
-                    )
-
-
-                    database.execSQL("CREATE INDEX IF NOT EXISTS `index_component_carId` ON `Component` (`carId`)")
-
-                    // Insert new components
-                    insertComponents(database, components)
-                } catch (e: Exception) {
-                    Log.i("TAG", "migrate: {$e}")
-                }
-            }
-        }
-
-        private val MIGRATION_4_5 = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                try {
-                    // Extract existing components
-                    val cursor = database.query("SELECT `id`, `components` FROM `Cars`")
-                    val components = cursorToComponents(cursor)
-
-                    // Make new table without components column, SQLite cannot delete columns
-                    database.execSQL("CREATE TABLE IF NOT EXISTS `_new_Cars` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `colour` TEXT NOT NULL)")
-
-
-                    database.execSQL(
-                        "INSERT INTO _new_Cars" +
-                                "(id, colour) " +
-                                "SELECT " +
-                                "id, colour" +
-                                " FROM Cars"
-                    )
-
-                    database.execSQL("DROP TABLE `Cars`")
-
-                    database.execSQL("ALTER TABLE `_new_Cars` RENAME TO `Cars`")
-
-                    // Add new table & index
-                    database.execSQL(
-                        "CREATE TABLE IF NOT EXISTS `Component` (`carId` INTEGER NOT NULL," +
-                                " `componentId` INTEGER NOT NULL," +
-                                " `type` TEXT NOT NULL," +
-                                " `description` TEXT NOT NULL," +
-                                " `created` TEXT NOT NULL, PRIMARY KEY(`componentId`)," +
-                                " FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
-                    )
-
-
-                    database.execSQL("CREATE INDEX IF NOT EXISTS `index_component_carId` ON `Component` (`carId`)")
-
-                    // Insert new components
-                    insertComponents(database, components)
-                } catch (e: Exception) {
-                    Log.i("TAG", "migrate: {$e}")
-                    // Migration failed, Room will automatically roll back the transaction and retry when DB accessed
-                }
-            }
-        }
-
-        private val MIGRATION_5_6 = object : Migration(5, 6) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                Log.i("TAG", "migrate: ENTRO EN EL METODO")
-                    // Extract existing components
-                    val cursor = database.query("SELECT `id`, `components` FROM `Cars`")
-                    val components = cursorToComponents(cursor)
-
-                    // Make new table without components column, SQLite cannot delete columns
-                    database.execSQL("CREATE TABLE IF NOT EXISTS `_new_Cars` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `colour` TEXT NOT NULL)")
-
-
-                    database.execSQL(
-                        "INSERT INTO _new_Cars" +
-                                "(id, colour) " +
-                                "SELECT " +
-                                "id, colour" +
-                                " FROM Cars"
-                    )
-
-                    database.execSQL("DROP TABLE `Cars`")
-
-                    database.execSQL("ALTER TABLE `_new_Cars` RENAME TO `Cars`")
-
-                    // Add new table & index
-                    database.execSQL(
-                        "CREATE TABLE IF NOT EXISTS `Component` (`carId` INTEGER NOT NULL," +
-                                " `componentId` INTEGER NOT NULL," +
-                                " `type` TEXT NOT NULL," +
-                                " `description` TEXT NOT NULL," +
-                                " `created` TEXT NOT NULL, PRIMARY KEY(`componentId`)," +
-                                " FOREIGN KEY(`carId`) REFERENCES `Cars`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
-                    )
-
-
-                    database.execSQL("CREATE INDEX IF NOT EXISTS `index_component_carId` ON `Component` (`carId`)")
-
-                    // Insert new components
-                    insertComponents(database, components)
-
             }
         }
 
