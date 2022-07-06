@@ -22,7 +22,7 @@ import com.google.gson.reflect.TypeToken
     //, autoMigrations = [AutoMigration(from = 3, to = 4)], exportSchema = true
 )
 
-@TypeConverters(MeaningConverter::class, ComponentConverter::class)
+@TypeConverters(MeaningConverter::class/*, ComponentConverter::class*/)
 abstract class WordsDatabase : RoomDatabase() {
     val DATABASE_NAME = "word_db"
 
@@ -47,7 +47,7 @@ abstract class WordsDatabase : RoomDatabase() {
                     )
                     .addMigrations(MIGRATION_1_2)
                     .addTypeConverter(MeaningConverter(GsonParser(Gson())))
-                    .addTypeConverter(ComponentConverter())
+                    //.addTypeConverter(ComponentConverter())
                     .build()
                 INSTANCE = instance
                 instance.openHelper.writableDatabase.version
@@ -139,6 +139,22 @@ abstract class WordsDatabase : RoomDatabase() {
             components: List<ComponentEntity>
         ) {
             val insertSql = "INSERT INTO " +
+                    "Component(carId, componentId,type, description, created) " +
+                    "VALUES (?, ?, ?, ?, ?)"
+            val insertStatement = database.compileStatement(insertSql)
+            var id = 0
+            components.forEach {
+                id += 1
+                insertStatement.clearBindings()
+                insertStatement.bindLong(1, it.carId.toLong())
+                insertStatement.bindLong(2, id.toLong())
+                insertStatement.bindString(3, it.type)
+                insertStatement.bindString(4, it.description)
+                insertStatement.bindString(5, it.created)
+                insertStatement.executeInsert()
+            }
+            //Original
+            /*val insertSql = "INSERT INTO " +
                     "Component(carId, componentId, type, description, created) " +
                     "VALUES (?, ?, ?, ?, ?)"
             val insertStatement = database.compileStatement(insertSql)
@@ -150,7 +166,7 @@ abstract class WordsDatabase : RoomDatabase() {
                 insertStatement.bindString(4, it.description)
                 insertStatement.bindString(5, it.created)
                 insertStatement.executeInsert()
-            }
+            }*/
         }
     }
 }

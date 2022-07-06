@@ -7,7 +7,7 @@ data class CarMetadata(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     var colour: String,
-    val components: List<Component>
+    //val components: List<Component>
 ) {}
 
 class Car(
